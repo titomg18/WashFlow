@@ -26,7 +26,12 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('dashboard');
+            
+            if (Auth::user()->role === 'admin') {
+                return redirect()->intended('/admin/dashboard');
+            }
+            
+            return redirect()->intended('/dashboard');
         }
 
         return back()->withErrors([
@@ -57,6 +62,10 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
 
         return redirect()->route('dashboard');
     }

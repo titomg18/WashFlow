@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
 // ==================
@@ -41,4 +42,11 @@ Route::middleware('auth')->group(function () {
     // Customers
     Route::resource('customers', CustomerController::class)->except(['edit', 'update', 'destroy']);
     Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+        Route::get('/staff', [AdminController::class, 'staffManagement'])->name('staff');
+        Route::get('/services', [AdminController::class, 'serviceManagement'])->name('services');
+    });
 });
