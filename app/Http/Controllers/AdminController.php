@@ -179,8 +179,18 @@ class AdminController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $staff = User::where('role', 'kasir')->get();
-        return view('admin.staff', compact('staff'));
+        $search = request()->get('search');
+        $query = User::where('role', 'kasir');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $staff = $query->orderBy('name', 'asc')->paginate(10);
+        return view('admin.staff', compact('staff', 'search'));
     }
     
     public function serviceManagement()
