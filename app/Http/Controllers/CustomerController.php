@@ -47,4 +47,24 @@ class CustomerController extends Controller
 
         return response()->json($customers);
     }
+
+    public function show(Customer $customer)
+{
+    // Get customer orders with pagination
+    $orders = $customer->orders()
+        ->with(['service', 'user'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+    
+    // Calculate statistics
+    $stats = [
+        'total_orders' => $customer->total_orders,
+        'total_spent' => $customer->total_spent,
+        'avg_spent' => $customer->total_orders > 0 ? $customer->total_spent / $customer->total_orders : 0,
+        'first_order' => $customer->orders()->orderBy('created_at')->first(),
+        'last_order' => $customer->orders()->orderBy('created_at', 'desc')->first(),
+    ];
+    
+    return view('customers.show', compact('customer', 'orders', 'stats'));
+}
 }

@@ -8,13 +8,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-pending { background-color: #f3f4f6; color: #374151; }
+        .status-cuci { background-color: #dbeafe; color: #1d4ed8; }
+        .status-kering { background-color: #fef3c7; color: #d97706; }
+        .status-setrika { background-color: #ffedd5; color: #ea580c; }
+        .status-selesai { background-color: #d1fae5; color: #065f46; }
+        .status-diambil { background-color: #ede9fe; color: #5b21b6; }
+        .status-batal { background-color: #fee2e2; color: #991b1b; }
+    </style>
 </head>
 <body class="bg-gray-50">
     
-    <!-- Navbar -->
+    <!-- Navbar Kasir (SAMA DENGAN DASHBOARD) -->
     <nav class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
+                <!-- Logo & Brand -->
                 <div class="flex items-center space-x-3">
                     <div class="bg-white p-2 rounded-lg">
                         <i class="fas fa-tshirt text-blue-600 text-xl"></i>
@@ -24,23 +45,62 @@
                         <p class="text-blue-100 text-xs">Detail Order</p>
                     </div>
                 </div>
+
+                <!-- Info Kasir & Shift -->
+                <div class="flex items-center space-x-6">
+                    <div class="text-center">
+                        <p class="text-xs text-blue-200">Kasir</p>
+                        <p class="font-bold">{{ auth()->user()->name }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-blue-200">Shift</p>
+                        <p class="font-bold">{{ date('d/m/Y') }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-blue-200">Jam</p>
+                        <p class="font-bold" id="currentTime">{{ date('H:i:s') }}</p>
+                    </div>
+                </div>
+
+                <!-- User Menu -->
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('dashboard') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
-                        <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+                    <!-- Tombol Kembali ke Dashboard -->
+                    <a href="{{ route('dashboard') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 hover:bg-blue-700 rounded-lg transition" onclick="showNotifications()">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    
+                    <!-- User Profile -->
+                    <div class="relative" id="userMenuWrapper">
+                        <button id="userMenuButton" onclick="toggleUserMenu(event)" class="flex items-center space-x-2 focus:outline-none" type="button" aria-expanded="false" aria-controls="userMenu">
+                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-blue-600"></i>
+                            </div>
                         </button>
-                    </form>
+                        <div id="userMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-50">
+                            <div class="px-4 py-2 border-b">
+                                <p class="font-medium text-gray-800">{{ auth()->user()->name }}</p>
+                                <p class="text-xs text-gray-500">{{ auth()->user()->role }}</p>
+                            </div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-6">
         <!-- Alert Success -->
         @if(session('success'))
         <div class="mb-6 bg-green-100 border-l-4 border-green-500 p-4 rounded">
@@ -54,7 +114,7 @@
         </div>
         @endif
 
-        <!-- Header -->
+        <!-- Header Order -->
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
             <div class="flex justify-between items-center">
                 <div>
@@ -65,17 +125,20 @@
                     <p class="text-gray-600">Tanggal: {{ $order->created_at->format('d/m/Y H:i') }}</p>
                 </div>
                 <div class="flex space-x-4">
-                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">
                         <i class="fas fa-print mr-2"></i>Cetak Nota
                     </button>
                     @if($order->payment_status == 'unpaid')
                     <form method="POST" action="{{ route('orders.paid', $order) }}">
                         @csrf
-                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium">
                             <i class="fas fa-money-bill mr-2"></i>Tandai Sudah Bayar
                         </button>
                     </form>
                     @endif
+                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium">
+                        <i class="fas fa-plus-circle mr-2"></i>Order Baru
+                    </a>
                 </div>
             </div>
         </div>
@@ -136,6 +199,10 @@
                                 <p class="text-2xl font-bold">{{ $order->weight }} kg</p>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-600">Total Harga</p>
+                                <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
                                 <p class="text-gray-600">Estimasi Selesai</p>
                                 <p class="text-xl font-bold">
                                     @if($order->estimated_finish_at)
@@ -145,16 +212,26 @@
                                     @endif
                                 </p>
                             </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
+                        </div>
+
+                        <!-- Status Waktu -->
+                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                            <div>
                                 <p class="text-gray-600">Status Waktu</p>
                                 <p class="text-xl font-bold {{ $order->isOverdue() ? 'text-red-600' : 'text-green-600' }}">
                                     @if($order->status == 'selesai' || $order->status == 'diambil')
                                         Selesai
                                     @elseif($order->isOverdue())
-                                        Terlambat
+                                        Terlambat {{ $order->getRemainingTime() }}
                                     @else
-                                        On Time
+                                        On Time ({{ $order->getRemainingTime() }} lagi)
                                     @endif
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Status Pembayaran</p>
+                                <p class="text-xl font-bold {{ $order->payment_status == 'paid' ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $order->payment_status == 'paid' ? 'LUNAS' : 'BELUM BAYAR' }}
                                 </p>
                             </div>
                         </div>
@@ -208,6 +285,7 @@
                             @php
                                 $statuses = ['pending', 'cuci', 'kering', 'setrika', 'selesai', 'diambil'];
                                 $currentIndex = array_search($order->status, $statuses);
+                                $currentIndex = $currentIndex !== false ? $currentIndex : -1;
                             @endphp
                             
                             @foreach($statuses as $index => $status)
@@ -222,7 +300,7 @@
                                     </p>
                                     @if($log = $order->statusLogs->where('status', $status)->first())
                                     <p class="text-xs text-gray-500">
-                                        {{ $log->created_at->format('H:i') }} oleh {{ $log->user->name }}
+                                        {{ $log->created_at->format('H:i') }} oleh {{ $log->user->name ?? 'System' }}
                                     </p>
                                     @endif
                                 </div>
@@ -251,7 +329,7 @@
                             <label class="block text-gray-700 font-medium mb-2">Catatan (opsional)</label>
                             <textarea name="notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">
                             <i class="fas fa-sync-alt mr-2"></i>Update Status
                         </button>
                     </form>
@@ -354,6 +432,64 @@
         </div>
         @endif
     </div>
+
+    <!-- JavaScript untuk Navbar (SAMA DENGAN DASHBOARD) -->
+    <script>
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        setInterval(updateTime, 1000);
+
+        // Show notifications
+        function showNotifications() {
+            alert('Tidak ada notifikasi baru.');
+        }
+
+        // User menu toggle
+        function toggleUserMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('userMenu');
+            const btn = document.getElementById('userMenuButton');
+            if (!menu || !btn) return;
+            menu.classList.toggle('hidden');
+            const expanded = menu.classList.contains('hidden') ? 'false' : 'true';
+            btn.setAttribute('aria-expanded', expanded);
+        }
+
+        // Close menu when clicking outside or pressing Escape
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('userMenu');
+            const btn = document.getElementById('userMenuButton');
+            const wrapper = document.getElementById('userMenuWrapper');
+            if (!menu || !btn || !wrapper) return;
+            if (!menu.classList.contains('hidden') && !wrapper.contains(e.target)) {
+                menu.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const menu = document.getElementById('userMenu');
+                const btn = document.getElementById('userMenuButton');
+                if (menu && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    if (btn) btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+
+        // Initialize
+        updateTime();
+    </script>
 
     <!-- Print Styles -->
     <style media="print">
