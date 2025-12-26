@@ -14,7 +14,7 @@ Route::middleware('guest')->group(function () {
     // Halaman login (GET)
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     
-    // Proses login (POST) - INI YANG HILANG!
+    // Proses login (POST)
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     
     // Halaman register (GET)
@@ -48,5 +48,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
         Route::get('/staff', [AdminController::class, 'staffManagement'])->name('staff');
         Route::get('/services', [AdminController::class, 'serviceManagement'])->name('services');
+        Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     });
 });

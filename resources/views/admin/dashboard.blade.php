@@ -76,6 +76,9 @@
                             <a href="{{ route('admin.reports') }}" class="block px-4 py-2 text-blue-600 hover:bg-blue-50">
                                 <i class="fas fa-chart-bar mr-2"></i>Laporan
                             </a>
+                            <a href="{{ route('admin.customers') }}" class="block px-4 py-2 text-blue-600 hover:bg-blue-50">
+                                <i class="fas fa-address-book mr-2"></i>Pelanggan
+                            </a>
                             <a href="{{ route('admin.staff') }}" class="block px-4 py-2 text-blue-600 hover:bg-blue-50">
                                 <i class="fas fa-users mr-2"></i>Staff
                             </a>
@@ -139,7 +142,9 @@
                             <p class="text-2xl font-bold text-blue-600">{{ $totalCustomers }}</p>
                         </div>
                         <div class="bg-blue-100 p-3 rounded-full">
-                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                            <a href="{{ route('admin.customers') }}" title="Lihat Semua Pelanggan">
+                                <i class="fas fa-users text-blue-600 text-xl cursor-pointer hover:text-blue-800"></i>
+                            </a>
                         </div>
                     </div>
                     <p class="text-sm text-gray-500 mt-2">{{ $newCustomersToday }} baru hari ini</p>

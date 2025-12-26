@@ -192,4 +192,23 @@ class AdminController extends Controller
         $services = Service::all();
         return view('admin.services', compact('services'));
     }
+
+    public function customers()
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized access');
+        }
+
+        $search = request()->get('search');
+        $query = Customer::query();
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+        }
+
+        $customers = $query->orderBy('name', 'asc')->paginate(20);
+        return view('admin.customers', compact('customers', 'search'));
+    }
 }
